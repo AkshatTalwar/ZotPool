@@ -1,40 +1,29 @@
-<<<<<<< HEAD
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Inspiration
+Being an Indian international student living in Singapore, every holiday came with a challenge. Traveling alone, especially on long trips, always felt boring and lonely. On top of that, the money I spent on Ubers to get to the airport or bus stations burned a hole in my pocket. I often wished I had someone to share rides with or travel together, but I didn’t know how to find the right people. That’s when the idea of ZotPool came to me—to help others like me connect with travel buddies, save money, and make trips more fun and social.
 
-## Getting Started
 
-First, run the development server:
+## What it does
+ZotPool is designed to make student travel more affordable, social, and stress-free. It offers two main features:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Carpool Finder:
+Students can find ride-sharing options by entering their starting and ending points, travel date and time, luggage details, and preferences for group size. The app matches users with others traveling in the same direction, allowing them to share costs while making new friends.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Travel Buddy Finder:
+For long-distance travel, students can find companions for flights, trains, or buses. Users provide travel details like origin, destination, and transport information (e.g., flight or bus numbers). With personality sliders for traits such as quietness, extroversion, and humor, users can ensure they are matched with people who suit their preferences.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+ZotPool is more than just a travel tool—it helps students save money, meet like-minded peers, and create memorable journeys.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## How we built it
+I built ZotPool using Next.js for a fast, modern, and scalable web application. Clerk was integrated for secure user authentication, ensuring a seamless login experience. The interactive interface was crafted using React for dynamic components and Tailwind CSS for clean and responsive styling. For the Travel Buddy feature, we integrated Google Maps Autocomplete to simplify location selection. To generate user matches, we leveraged the OpenAI API to simulate realistic outputs based on user preferences and personality traits. This blend of modern technologies and AI ensured that ZotPool is intelligent, efficient, and user-focused.
 
-## Learn More
+## Challenges we ran into
+The major challenge I faced was building the model that powers the algorithm for matching users. This involved calculating distances between locations using latitude and longitude to ensure the output options were within a 1-mile radius. Converting this logic into mathematical formulas and integrating it with an LLM-powered matching system required significant effort. On top of that, incorporating the Google Maps API for location autocomplete and ensuring it worked seamlessly with our custom algorithm was technically demanding
 
-To learn more about Next.js, take a look at the following resources:
+## Accomplishments that we're proud of
+I am proud of building a functional platform that combines real-world tools like Google Maps API with advanced algorithms to create meaningful matches for travelers. Successfully integrating an LLM-powered recommendation system with real-time location-based filtering was a significant achievement. Additionally, designing an intuitive and user-friendly interface while ensuring the app handles diverse user needs was no small feat.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## What we learned
+This was my first hackathon, and it taught me so much about building a project under a strict timeline. Learning to use APIs, like Google Maps, and creating a working AI model for matching travelers was a valuable experience. It gave me practical insight into integrating technical tools and frameworks while working efficiently as part of a competition. This experience has sharpened my skills and boosted my confidence to tackle more complex challenges in the future.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-=======
-# ZotPool
->>>>>>> 84e24b1185a3b208df62b8a1b2e98a761d57c610
+## What's next for ZotPool - Save Costs, Make Friends, Travel Together!
+The next step for ZotPool is to create a fully functional mobile application with an intuitive and gamified user interface. The focus will be on enhancing the user experience to make it more personal, engaging, and accessible. Additionally, we aim to improve the accuracy of information by refining the AI model and integrating more data sources, ensuring a seamless and enjoyable experience for users. This mobile app will make ZotPool even more convenient for students and travelers worldwide.
