@@ -1,8 +1,27 @@
 "use client";
 
+import React, { Suspense } from "react";
+
 import { useSearchParams } from "next/navigation";
 
+type Match = {
+    name: string;
+    origin: string;
+    destination: string;
+    Airlines?: string; // Optional field
+    seat?: string;     // Optional field
+};
+
+
 export default function Results() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ResultsContent />
+        </Suspense>
+    );
+}
+
+function ResultsContent() {
     const searchParams = useSearchParams();
     const data = JSON.parse(searchParams.get("data") || "[]");
 
@@ -27,7 +46,7 @@ export default function Results() {
                         marginTop: "20px",
                     }}
                 >
-                    {data.map((match: any, index: number) => (
+                    {data.map((match: Match, index: number) => (
                         <div
                             key={index}
                             style={{
