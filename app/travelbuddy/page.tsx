@@ -6,8 +6,8 @@ type Result = {
     name: string;
     origin: string;
     destination: string;
-    Airlines?: string;
     seat?: string;
+    Airlines?: string;
     contact?: string;
     instagram?: string;
 };
@@ -114,3 +114,4 @@ export default function Results() {
         </div>
     );
 }
+
