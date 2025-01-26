@@ -56,23 +56,20 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         style={{ margin: 0, padding: 0 }}
       >
-        {/* ClerkProvider to handle authentication */}
         <ClerkProvider>
           {/* Floating dots background */}
           <div className="floating-dots">{generateDots(50)}</div>
 
-          {/* Header Section */}
+          {/* Header with Anteater Logo */}
           <header
             style={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
               backgroundColor: "#255799",
               padding: "10px 20px",
               position: "relative",
             }}
           >
-            {/* Logo Link */}
             <Link href="/">
               <Image
                 src="/anteater_logo.png"
@@ -80,24 +77,12 @@ export default function RootLayout({
                 width={80}
                 height={80}
                 style={{ cursor: "pointer" }}
-                priority={true} // Optimize loading
               />
             </Link>
-            {/* Title */}
-            <h1
-              style={{
-                color: "#fecc07",
-                fontSize: "1.5rem",
-                fontWeight: "bold",
-                margin: 0,
-              }}
-            >
-              ZotPool
-            </h1>
           </header>
 
           {/* Main Content */}
-          <main style={{ padding: "20px" }}>{children}</main>
+          <main>{children}</main>
         </ClerkProvider>
       </body>
     </html>
