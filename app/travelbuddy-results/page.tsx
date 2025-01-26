@@ -23,7 +23,8 @@ export default function Results() {
 
 function ResultsContent() {
     const searchParams = useSearchParams();
-    const data: Match[] = JSON.parse(searchParams.get("data") || "[]"); // Explicitly type 'data' as an array of 'Match'
+    const data: Match[] = JSON.parse(searchParams.get("data") || "[]");
+
 
     return (
         <div
@@ -46,7 +47,7 @@ function ResultsContent() {
                         marginTop: "20px",
                     }}
                 >
-                    {data.map((match: Match, index: number) => ( // Typing 'match' explicitly as 'Match'
+                    {data.map((match: Match, index: number) => (
                         <div
                             key={index}
                             style={{
