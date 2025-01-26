@@ -4,10 +4,18 @@ import React, { useState, useRef } from "react";
 import { useJsApiLoader, Autocomplete } from "@react-google-maps/api";
 import { useRouter } from "next/navigation";
 
+type Result = {
+    name: string;
+    origin: string;
+    destination: string;
+    seat?: string;
+    Airlines?: string;
+};
+
 export default function TravelBuddy() {
     const router = useRouter();
 
-    const [selectedOption, setSelectedOption] = useState("");
+    const [selectedOption, setSelectedOption] = useState<string>("");
     const [formData, setFormData] = useState({
         origin: "",
         destination: "",
@@ -29,7 +37,7 @@ export default function TravelBuddy() {
 
     const { isLoaded } = useJsApiLoader({
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-        libraries: ["places"], // Load the Places library
+        libraries: ["places"],
     });
 
     const handlePlaceSelect = (field: "origin" | "destination") => {
@@ -54,9 +62,10 @@ export default function TravelBuddy() {
     };
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value || "", // Ensure no undefined value
+            [name]: value || "", // Ensure no undefined value
         });
     };
 
@@ -68,8 +77,7 @@ export default function TravelBuddy() {
     };
 
     const handleSubmit = () => {
-        // Generate random sample data for each category
-        let results = [];
+        let results: Result[] = [];
 
         if (selectedOption === "Flights") {
             results = [
@@ -87,7 +95,6 @@ export default function TravelBuddy() {
             results = []; // No matches for buses
         }
 
-        // Redirect to the results page with the sample data
         router.push(`/travelbuddy-results?data=${encodeURIComponent(JSON.stringify(results))}`);
     };
 
@@ -318,10 +325,10 @@ export default function TravelBuddy() {
 
                 {/* Other Personality Traits as Sliders */}
                 {[
-                    { trait: "Entertainment", label: "Entertainment" },
-                    { trait: "Quitness", label: "Quietness" },
-                    { trait: "Sleep", label: "Sleep" },
-                    { trait: "Snakcs/Meals", label: "Snacks/Meals" },
+                    { trait: "extroversion", label: "Extroversion" },
+                    { trait: "quietness", label: "Quietness" },
+                    { trait: "humor", label: "Humor" },
+                    { trait: "flexibility", label: "Flexibility" },
                 ].map(({ trait, label }) => (
                     <div key={trait} style={{ marginBottom: "20px" }}>
                         <label
@@ -333,19 +340,18 @@ export default function TravelBuddy() {
                             }}
                         >
                             {label}:{" "}
-                            {personalityTraits[trait] < 33
-                                ? "Low"
-                                : personalityTraits[trait] < 66
-                                ? "Medium"
-                                : "High"}
+                            {getCategory(personalityTraits[trait as keyof typeof personalityTraits] as number)}
                         </label>
                         <input
                             type="range"
                             min="0"
                             max="100"
-                            value={personalityTraits[trait]}
+                            value={personalityTraits[trait as keyof typeof personalityTraits]}
                             onChange={(e) =>
-                                handleSliderChange(trait as keyof typeof personalityTraits, parseInt(e.target.value))
+                                handleSliderChange(
+                                    trait as keyof typeof personalityTraits,
+                                    parseInt(e.target.value)
+                                )
                             }
                             style={{ width: "100%" }}
                         />
@@ -372,3 +378,10 @@ export default function TravelBuddy() {
         </div>
     );
 }
+
+// Helper function to categorize slider values
+const getCategory = (value: number): string => {
+    if (value < 33) return "Low";
+    if (value < 66) return "Medium";
+    return "High";
+};
