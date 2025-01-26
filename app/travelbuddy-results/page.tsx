@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import React, { Suspense } from "react";
 
 type Result = {
     name: string;
@@ -12,7 +13,16 @@ type Result = {
     instagram?: string; // Optional field
 };
 
+
 export default function Results() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ResultsContent />
+        </Suspense>
+    );
+}
+
+function ResultsContent() {
     const searchParams = useSearchParams();
     const data: Result[] = JSON.parse(searchParams.get("data") || "[]");
 
