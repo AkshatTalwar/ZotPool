@@ -2,9 +2,19 @@
 
 import { useSearchParams } from "next/navigation";
 
+type Result = {
+    name: string;
+    origin: string;
+    destination: string;
+    seat?: string;
+    Airlines?: string;
+    contact?: string;
+    instagram?: string;
+};
+
 export default function Results() {
     const searchParams = useSearchParams();
-    const data = JSON.parse(searchParams.get("data") || "[]");
+    const data: Result[] = JSON.parse(searchParams.get("data") || "[]");
 
     return (
         <div

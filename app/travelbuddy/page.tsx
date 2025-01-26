@@ -1,387 +1,116 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { useJsApiLoader, Autocomplete } from "@react-google-maps/api";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 type Result = {
     name: string;
     origin: string;
     destination: string;
-    seat?: string;
     Airlines?: string;
+    seat?: string;
+    contact?: string;
+    instagram?: string;
 };
 
-export default function TravelBuddy() {
-    const router = useRouter();
-
-    const [selectedOption, setSelectedOption] = useState<string>("");
-    const [formData, setFormData] = useState({
-        origin: "",
-        destination: "",
-        flightNumber: "",
-        busNumber: "",
-        Airlines: "",
-    });
-
-    const [personalityTraits, setPersonalityTraits] = useState({
-        ageGroup: "18-25", // Default age group
-        extroversion: 50,
-        quietness: 50,
-        humor: 50,
-        flexibility: 50,
-    });
-
-    const autocompleteOriginRef = useRef<google.maps.places.Autocomplete | null>(null);
-    const autocompleteDestinationRef = useRef<google.maps.places.Autocomplete | null>(null);
-
-    const { isLoaded } = useJsApiLoader({
-        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-        libraries: ["places"], // Load the Places library
-    });
-
-    const handlePlaceSelect = (field: "origin" | "destination") => {
-        const autocomplete =
-            field === "origin" ? autocompleteOriginRef.current : autocompleteDestinationRef.current;
-        if (autocomplete) {
-            const place = autocomplete.getPlace();
-            const address = place?.formatted_address || "";
-            setFormData({ ...formData, [field]: address });
-        }
-    };
-
-    const handleSliderChange = (trait: keyof typeof personalityTraits, value: number) => {
-        setPersonalityTraits({
-            ...personalityTraits,
-            [trait]: value,
-        });
-    };
-
-    const handleOptionClick = (option: string) => {
-        setSelectedOption(option);
-    };
-
-    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value || "", // Ensure no undefined value
-        });
-    };
-
-    const handleAgeGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setPersonalityTraits({
-            ...personalityTraits,
-            ageGroup: e.target.value,
-        });
-    };
-
-    const handleSubmit = () => {
-        let results: Result[] = [];
-
-        if (selectedOption === "Flights") {
-            results = [
-                { name: "Alice", origin: formData.origin, destination: formData.destination, seat: "12A", Airlines: formData.Airlines },
-                { name: "Bob", origin: formData.origin, destination: formData.destination, seat: "15C", Airlines: formData.Airlines },
-                { name: "Charlie", origin: formData.origin, destination: formData.destination, seat: "9B", Airlines: formData.Airlines },
-                { name: "Diana", origin: formData.origin, destination: formData.destination, seat: "14D", Airlines: formData.Airlines },
-            ];
-        } else if (selectedOption === "Trains") {
-            results = [
-                { name: "Eve", origin: formData.origin, destination: formData.destination, seat: "Window Seat" },
-                { name: "Frank", origin: formData.origin, destination: formData.destination, seat: "Aisle Seat" },
-            ];
-        } else if (selectedOption === "Buses") {
-            results = []; // No matches for buses
-        }
-
-        router.push(`/travelbuddy-results?data=${encodeURIComponent(JSON.stringify(results))}`);
-    };
-
-    if (!isLoaded) return <div>Loading Google Maps...</div>;
+export default function Results() {
+    const searchParams = useSearchParams();
+    const data: Result[] = JSON.parse(searchParams.get("data") || "[]");
 
     return (
         <div
             style={{
                 padding: "20px",
                 fontFamily: "Arial, sans-serif",
-                color: "#255799",
                 textAlign: "center",
             }}
         >
-            <h1 style={{ fontSize: "2.5rem", marginBottom: "20px", color: "#fecc07" }}>Travel Buddy</h1>
-
-            {/* Options for Flights, Trains, Buses */}
+            <h1
+                style={{
+                    fontSize: "2rem",
+                    color: "#fecc07",
+                    marginBottom: "20px",
+                }}
+            >
+                Matches Found
+            </h1>
             <div
                 style={{
-                    display: "flex",
-                    justifyContent: "center",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
                     gap: "20px",
-                    marginBottom: "30px",
+                    marginTop: "30px",
                 }}
             >
-                {["Flights", "Trains", "Buses"].map((option) => (
-                    <div
-                        key={option}
-                        onClick={() => handleOptionClick(option)}
-                        style={{
-                            backgroundColor: selectedOption === option ? "#fecc07" : "#255799",
-                            color: selectedOption === option ? "#255799" : "#fecc07",
-                            padding: "20px 40px",
-                            borderRadius: "10px",
-                            cursor: "pointer",
-                            fontWeight: "bold",
-                            transition: "transform 0.2s",
-                        }}
-                        onMouseEnter={(e) =>
-                            (e.currentTarget.style.transform = "scale(1.1)")
-                        }
-                        onMouseLeave={(e) =>
-                            (e.currentTarget.style.transform = "scale(1)")
-                        }
-                    >
-                        {option}
-                    </div>
-                ))}
-            </div>
-
-            {/* Conditional Form Below */}
-            {selectedOption && (
-                <div
-                    style={{
-                        backgroundColor: "#fff",
-                        padding: "20px",
-                        borderRadius: "10px",
-                        boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-                        maxWidth: "500px",
-                        margin: "0 auto",
-                        marginBottom: "30px",
-                    }}
-                >
-                    <h2 style={{ marginBottom: "15px", color: "#255799" }}>
-                        {selectedOption} Details
-                    </h2>
-
-                    <div style={{ marginBottom: "10px" }}>
-                        <label style={{ display: "block", marginBottom: "5px" }}>
-                            Origin
-                        </label>
-                        <Autocomplete
-                            onLoad={(autocompleteInstance) =>
-                                (autocompleteOriginRef.current = autocompleteInstance)
-                            }
-                            onPlaceChanged={() => handlePlaceSelect("origin")}
-                        >
-                            <input
-                                type="text"
-                                placeholder={`Enter ${
-                                    selectedOption === "Flights"
-                                        ? "Airport"
-                                        : selectedOption === "Trains"
-                                        ? "Station"
-                                        : "Bus Depot"
-                                } Origin`}
-                                value={formData.origin}
-                                onChange={handleFormChange}
-                                name="origin"
-                                style={{
-                                    width: "100%",
-                                    padding: "10px",
-                                    borderRadius: "5px",
-                                    border: "1px solid #ddd",
-                                }}
-                            />
-                        </Autocomplete>
-                    </div>
-
-                    <div style={{ marginBottom: "10px" }}>
-                        <label style={{ display: "block", marginBottom: "5px" }}>
-                            Destination
-                        </label>
-                        <Autocomplete
-                            onLoad={(autocompleteInstance) =>
-                                (autocompleteDestinationRef.current = autocompleteInstance)
-                            }
-                            onPlaceChanged={() => handlePlaceSelect("destination")}
-                        >
-                            <input
-                                type="text"
-                                placeholder={`Enter ${
-                                    selectedOption === "Flights"
-                                        ? "Airport"
-                                        : selectedOption === "Trains"
-                                        ? "Station"
-                                        : "Bus Depot"
-                                } Destination`}
-                                value={formData.destination}
-                                onChange={handleFormChange}
-                                name="destination"
-                                style={{
-                                    width: "100%",
-                                    padding: "10px",
-                                    borderRadius: "5px",
-                                    border: "1px solid #ddd",
-                                }}
-                            />
-                        </Autocomplete>
-                    </div>
-
-                    {/* Additional Inputs for Flight/Bus */}
-                    {selectedOption === "Flights" && (
-                        <>
-                            <input
-                                type="text"
-                                name="flightNumber"
-                                value={formData.flightNumber}
-                                onChange={handleFormChange}
-                                placeholder="Enter Flight Number"
-                                style={{
-                                    width: "100%",
-                                    padding: "10px",
-                                    marginBottom: "10px",
-                                    borderRadius: "5px",
-                                    border: "1px solid #ddd",
-                                }}
-                            />
-                            <input
-                                type="text"
-                                name="Airlines"
-                                value={formData.Airlines}
-                                onChange={handleFormChange}
-                                placeholder="Enter Airlines Name"
-                                style={{
-                                    width: "100%",
-                                    padding: "10px",
-                                    marginBottom: "10px",
-                                    borderRadius: "5px",
-                                    border: "1px solid #ddd",
-                                }}
-                            />
-                        </>
-                    )}
-                    {selectedOption === "Buses" && (
-                        <input
-                            type="text"
-                            name="busNumber"
-                            value={formData.busNumber}
-                            onChange={handleFormChange}
-                            placeholder="Enter Bus Number"
+                {data.length > 0 ? (
+                    data.map((result, index) => (
+                        <div
+                            key={index}
                             style={{
-                                width: "100%",
-                                padding: "10px",
-                                marginBottom: "10px",
-                                borderRadius: "5px",
-                                border: "1px solid #ddd",
+                                backgroundColor: "#fff",
+                                padding: "20px",
+                                borderRadius: "10px",
+                                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+                                transition: "transform 0.2s, box-shadow 0.2s",
+                                cursor: "pointer",
                             }}
-                        />
-                    )}
-                </div>
-            )}
-
-            {/* Personality Traits */}
-            <div
-                style={{
-                    backgroundColor: "#fff",
-                    padding: "20px",
-                    borderRadius: "10px",
-                    boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-                    maxWidth: "600px",
-                    margin: "0 auto",
-                }}
-            >
-                <h2 style={{ marginBottom: "15px", color: "#255799" }}>
-                    Personality Preferences
-                </h2>
-
-                {/* Age Group as Dropdown */}
-                <div style={{ marginBottom: "20px" }}>
-                    <label
-                        style={{
-                            color: "#255799",
-                            marginBottom: "5px",
-                            display: "block",
-                            fontWeight: "bold",
-                        }}
-                    >
-                        Age Group
-                    </label>
-                    <select
-                        value={personalityTraits.ageGroup}
-                        onChange={handleAgeGroupChange}
-                        style={{
-                            width: "100%",
-                            padding: "10px",
-                            borderRadius: "5px",
-                            border: "1px solid #ddd",
-                        }}
-                    >
-                        <option value="18-25">18-25</option>
-                        <option value="26-35">26-35</option>
-                        <option value="36-45">36-45</option>
-                        <option value="46-60">46-60</option>
-                        <option value="60+">60+</option>
-                    </select>
-                </div>
-
-                {/* Other Personality Traits as Sliders */}
-                {[
-                    { trait: "extroversion", label: "Extroversion" },
-                    { trait: "quietness", label: "Quietness" },
-                    { trait: "humor", label: "Humor" },
-                    { trait: "flexibility", label: "Flexibility" },
-                ].map(({ trait, label }) => (
-                    <div key={trait} style={{ marginBottom: "20px" }}>
-                        <label
-                            style={{
-                                color: "#255799",
-                                marginBottom: "5px",
-                                display: "block",
-                                fontWeight: "bold",
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = "scale(1.05)";
+                                e.currentTarget.style.boxShadow =
+                                    "0 8px 16px rgba(0, 0, 0, 0.3)";
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = "scale(1)";
+                                e.currentTarget.style.boxShadow =
+                                    "0 4px 8px rgba(0, 0, 0, 0.2)";
                             }}
                         >
-                            {label}:{" "}
-                            {getCategory(personalityTraits[trait as keyof typeof personalityTraits] as number)}
-                        </label>
-                        <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            value={personalityTraits[trait as keyof typeof personalityTraits]}
-                            onChange={(e) =>
-                                handleSliderChange(
-                                    trait as keyof typeof personalityTraits,
-                                    parseInt(e.target.value)
-                                )
-                            }
-                            style={{ width: "100%" }}
-                        />
-                    </div>
-                ))}
+                            <h3
+                                style={{
+                                    fontWeight: "bold",
+                                    color: "#255799",
+                                    marginBottom: "10px",
+                                }}
+                            >
+                                {result.name}
+                            </h3>
+                            <p style={{ color: "#333", marginBottom: "5px" }}>
+                                <strong>Origin:</strong> {result.origin || "Not provided"}
+                            </p>
+                            <p style={{ color: "#333", marginBottom: "5px" }}>
+                                <strong>Destination:</strong> {result.destination || "Not provided"}
+                            </p>
+                            {result.Airlines && (
+                                <p style={{ color: "#333", marginBottom: "5px" }}>
+                                    <strong>Airlines:</strong> {result.Airlines}
+                                </p>
+                            )}
+                            {result.seat && (
+                                <p style={{ color: "#333", marginBottom: "5px" }}>
+                                    <strong>Seat:</strong> {result.seat}
+                                </p>
+                            )}
+                            <p style={{ color: "#333", marginBottom: "5px" }}>
+                                <strong>Contact:</strong> {result.contact || "+1 (123) 456-7890"}
+                            </p>
+                            <p style={{ color: "#333" }}>
+                                <strong>Instagram:</strong>{" "}
+                                <a
+                                    href={`https://instagram.com/${result.instagram || "default_handle"}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ color: "#255799", textDecoration: "none" }}
+                                >
+                                    @{result.instagram || "default_handle"}
+                                </a>
+                            </p>
+                        </div>
+                    ))
+                ) : (
+                    <p style={{ color: "#255799", fontSize: "1.2rem" }}>
+                        No matches found. Please try again.
+                    </p>
+                )}
             </div>
-
-            {/* Submit Button */}
-            <button
-                onClick={handleSubmit}
-                style={{
-                    marginTop: "20px",
-                    backgroundColor: "#fecc07",
-                    color: "#255799",
-                    border: "none",
-                    borderRadius: "5px",
-                    padding: "10px 20px",
-                    fontSize: "1.2rem",
-                    cursor: "pointer",
-                }}
-            >
-                Submit
-            </button>
         </div>
     );
 }
-
-// Helper function to categorize slider values
-const getCategory = (value: number): string => {
-    if (value < 33) return "Low";
-    if (value < 66) return "Medium";
-    return "High";
-};
