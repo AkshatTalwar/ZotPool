@@ -1,30 +1,20 @@
 "use client";
 
-import React, { Suspense } from "react";
-
 import { useSearchParams } from "next/navigation";
 
-type Match = {
+type Result = {
     name: string;
     origin: string;
     destination: string;
     Airlines?: string; // Optional field
-    seat?: string;     // Optional field
+    seat?: string; // Optional field
+    contact?: string; // Optional field
+    instagram?: string; // Optional field
 };
 
-
 export default function Results() {
-    return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <ResultsContent />
-        </Suspense>
-    );
-}
-
-function ResultsContent() {
     const searchParams = useSearchParams();
-    const data: Match[] = JSON.parse(searchParams.get("data") || "[]");
-
+    const data: Result[] = JSON.parse(searchParams.get("data") || "[]");
 
     return (
         <div
@@ -32,56 +22,95 @@ function ResultsContent() {
                 padding: "20px",
                 fontFamily: "Arial, sans-serif",
                 textAlign: "center",
-                color: "#255799",
             }}
         >
-            <h1 style={{ fontSize: "2.5rem", marginBottom: "20px", color: "#fecc07" }}>
-                {data.length > 0 ? "Matches Found" : "No Matches Found"}
+            <h1
+                style={{
+                    fontSize: "2rem",
+                    color: "#fecc07",
+                    marginBottom: "20px",
+                }}
+            >
+                Matches Found
             </h1>
-            {data.length > 0 ? (
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-                        gap: "20px",
-                        marginTop: "20px",
-                    }}
-                >
-                    {data.map((match: Match, index: number) => (
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+                    gap: "20px",
+                    marginTop: "30px",
+                }}
+            >
+                {data.length > 0 ? (
+                    data.map((result: Result, index: number) => (
                         <div
                             key={index}
                             style={{
                                 backgroundColor: "#fff",
                                 padding: "20px",
                                 borderRadius: "10px",
-                                boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+                                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+                                transition: "transform 0.2s, box-shadow 0.2s",
+                                cursor: "pointer",
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = "scale(1.05)";
+                                e.currentTarget.style.boxShadow =
+                                    "0 8px 16px rgba(0, 0, 0, 0.3)";
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = "scale(1)";
+                                e.currentTarget.style.boxShadow =
+                                    "0 4px 8px rgba(0, 0, 0, 0.2)";
                             }}
                         >
-                            <h2 style={{ marginBottom: "10px", color: "#255799" }}>{match.name}</h2>
-                            <p>
-                                <strong>Origin:</strong> {match.origin}
+                            <h3
+                                style={{
+                                    fontWeight: "bold",
+                                    color: "#255799",
+                                    marginBottom: "10px",
+                                }}
+                            >
+                                {result.name}
+                            </h3>
+                            <p style={{ color: "#333", marginBottom: "5px" }}>
+                                <strong>Origin:</strong> {result.origin || "Not provided"}
                             </p>
-                            <p>
-                                <strong>Destination:</strong> {match.destination}
+                            <p style={{ color: "#333", marginBottom: "5px" }}>
+                                <strong>Destination:</strong> {result.destination || "Not provided"}
                             </p>
-                            {match.Airlines && (
-                                <p>
-                                    <strong>Airlines:</strong> {match.Airlines}
+                            {result.Airlines && (
+                                <p style={{ color: "#333", marginBottom: "5px" }}>
+                                    <strong>Airlines:</strong> {result.Airlines}
                                 </p>
                             )}
-                            {match.seat && (
-                                <p>
-                                    <strong>Seat:</strong> {match.seat}
+                            {result.seat && (
+                                <p style={{ color: "#333", marginBottom: "5px" }}>
+                                    <strong>Seat:</strong> {result.seat}
                                 </p>
                             )}
+                            <p style={{ color: "#333", marginBottom: "5px" }}>
+                                <strong>Contact:</strong> {result.contact || "Not provided"}
+                            </p>
+                            <p style={{ color: "#333" }}>
+                                <strong>Instagram:</strong>{" "}
+                                <a
+                                    href={`https://instagram.com/${result.instagram || "default_handle"}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ color: "#255799", textDecoration: "none" }}
+                                >
+                                    @{result.instagram || "default_handle"}
+                                </a>
+                            </p>
                         </div>
-                    ))}
-                </div>
-            ) : (
-                <p style={{ fontSize: "1.5rem", color: "#255799" }}>
-                    Sorry, no matches found for this category.
-                </p>
-            )}
+                    ))
+                ) : (
+                    <p style={{ color: "#255799", fontSize: "1.2rem" }}>
+                        No matches found. Please try again.
+                    </p>
+                )}
+            </div>
         </div>
     );
 }
