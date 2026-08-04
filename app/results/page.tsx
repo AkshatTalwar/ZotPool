@@ -1,105 +1,118 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useSyncExternalStore } from 'react';
 
-type MatchedUser = {
-    name: string;
+type RideMatch = {
+    rideId: string;
+    riderName: string;
     destination: string;
-    mobile: string;
-    social: string;
+    departureTime: string;
+    matchScore: number;
+    startDistanceMiles: number;
+    endDistanceMiles: number;
+    reasons: string[];
+    contact?: string;
 };
 
-export default function Results() {
-    const [matchedUsers, setMatchedUsers] = useState<MatchedUser[]>([]);
+const subscribeToLocalStorage = () => () => undefined;
 
-    useEffect(() => {
-        // Retrieve the matched users from localStorage
-        const data = localStorage.getItem('matchedUsers');
-        if (data) {
-            setMatchedUsers(JSON.parse(data));
-        }
-    }, []);
+function parseMatches(serialized: string): RideMatch[] {
+    if (!serialized) return [];
+    try {
+        return JSON.parse(serialized) as RideMatch[];
+    } catch {
+        return [];
+    }
+}
+
+export default function Results() {
+    const serializedMatches = useSyncExternalStore(
+        subscribeToLocalStorage,
+        () => localStorage.getItem('matchedRides') ?? '',
+        () => '',
+    );
+    const aiExplanation = useSyncExternalStore(
+        subscribeToLocalStorage,
+        () => localStorage.getItem('matchExplanation') ?? '',
+        () => '',
+    );
+    const matches = parseMatches(serializedMatches);
 
     return (
         <div
             style={{
                 backgroundColor: '#255799',
                 minHeight: '100vh',
-                padding: '20px',
+                padding: '32px 20px',
                 color: '#fff',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
             }}
         >
-            <h1 style={{ color: '#fecc07', fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '20px' }}>
-                Matches Found
+            <h1 style={{ color: '#fecc07', fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '8px', position: 'relative', zIndex: 2 }}>
+                Ranked ride matches
             </h1>
+            <p style={{ marginBottom: '24px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
+                Every score is computed from route distance, departure time, capacity, and luggage compatibility.
+            </p>
+            {aiExplanation && (
+                <aside
+                    style={{
+                        backgroundColor: '#e8f1ff',
+                        color: '#1f3f6d',
+                        padding: '16px 20px',
+                        borderRadius: '10px',
+                        width: '100%',
+                        maxWidth: '1000px',
+                        marginBottom: '24px',
+                        position: 'relative',
+                        zIndex: 2,
+                    }}
+                >
+                    <strong>AI-assisted explanation:</strong> {aiExplanation}
+                </aside>
+            )}
             <div
                 style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                     gap: '20px',
                     width: '100%',
                     maxWidth: '1000px',
+                    position: 'relative',
+                    zIndex: 2,
                 }}
             >
-                {matchedUsers.map((user, index) => (
-                    <div
-                        key={index}
+                {matches.length === 0 && (
+                    <p style={{ gridColumn: '1 / -1', textAlign: 'center' }}>
+                        No compatible rides were found within the selected detour and time window.
+                    </p>
+                )}
+                {matches.map((match) => (
+                    <article
+                        key={match.rideId}
                         style={{
                             backgroundColor: '#fff',
-                            color: '#255799',
-                            padding: '20px',
-                            borderRadius: '10px',
-                            boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-                            transition: 'transform 0.3s, box-shadow 0.3s',
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'scale(1.05)';
-                            e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.3)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+                            color: '#1f3f6d',
+                            padding: '22px',
+                            borderRadius: '12px',
+                            boxShadow: '0 6px 16px rgba(0,0,0,0.22)',
                         }}
                     >
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                marginBottom: '10px',
-                            }}
-                        >
-                            <div
-                                style={{
-                                    width: '50px',
-                                    height: '50px',
-                                    borderRadius: '50%',
-                                    backgroundColor: '#ddd',
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    marginRight: '10px',
-                                }}
-                            >
-                                {/* Placeholder Avatar */}
-                                <span style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>
-                                    {user.name[0]}
-                                </span>
-                            </div>
-                            <h3 style={{ margin: 0 }}>{user.name}</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                            <h2 style={{ margin: 0, fontSize: '1.3rem' }}>{match.riderName}</h2>
+                            <strong style={{ color: '#0f766e', fontSize: '1.2rem' }}>{match.matchScore}%</strong>
                         </div>
-                        <p>
-                            <strong>Destination:</strong> {user.destination}
-                        </p>
-                        <p>
-                            <strong>Mobile:</strong> {user.mobile}
-                        </p>
-                        <p>
-                            <strong>Social:</strong> {user.social}
-                        </p>
-                    </div>
+                        <p><strong>Destination:</strong> {match.destination}</p>
+                        <p><strong>Departure:</strong> {new Date(match.departureTime).toLocaleString()}</p>
+                        <p><strong>Pickup distance:</strong> {match.startDistanceMiles} mi</p>
+                        <p><strong>Destination distance:</strong> {match.endDistanceMiles} mi</p>
+                        <ul style={{ paddingLeft: '20px' }}>
+                            {match.reasons.map((reason) => <li key={reason}>{reason}</li>)}
+                        </ul>
+                        <p><strong>Contact:</strong> {match.contact ?? 'Available after confirmation'}</p>
+                    </article>
                 ))}
             </div>
         </div>

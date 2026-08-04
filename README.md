@@ -1,29 +1,119 @@
-## Inspiration
-Being an Indian international student living in Singapore, every holiday came with a challenge. Traveling alone, especially on long trips, always felt boring and lonely. On top of that, the money I spent on Ubers to get to the airport or bus stations burned a hole in my pocket. I often wished I had someone to share rides with or travel together, but I didn’t know how to find the right people. That’s when the idea of ZotPool came to me—to help others like me connect with travel buddies, save money, and make trips more fun and social.
+# ZotPool
 
+ZotPool is a full-stack ridesharing prototype for the UCI community. It ranks compatible carpools using route proximity, departure-time alignment, available seats, and luggage capacity, then exposes trip-status events through a small WebSocket service.
 
-## What it does
-ZotPool is designed to make student travel more affordable, social, and stress-free. It offers two main features:
+> **Portfolio MVP:** the matching algorithm, API, PostgreSQL repository, Redis cache, WebSocket service, Docker environment, Lambda-compatible handler, optional OpenAI explanation adapter, tests, and CI are implemented. The public demo can use in-memory sample rides when infrastructure credentials are not configured. Production traffic, scale claims, and a live AWS deployment are not asserted by this repository yet.
 
-1. Carpool Finder:
-Students can find ride-sharing options by entering their starting and ending points, travel date and time, luggage details, and preferences for group size. The app matches users with others traveling in the same direction, allowing them to share costs while making new friends.
+## What works
 
-2. Travel Buddy Finder:
-For long-distance travel, students can find companions for flights, trains, or buses. Users provide travel details like origin, destination, and transport information (e.g., flight or bus numbers). With personality sliders for traits such as quietness, extroversion, and humor, users can ensure they are matched with people who suit their preferences.
+- Google Maps place selection for pickup and destination.
+- Haversine-distance route comparison with weighted preference scoring.
+- Ranked matches with explainable score components.
+- `POST /api/matches` Node.js/Next.js API.
+- PostgreSQL repository with time-window lookup and explicit B-tree indexes.
+- Redis-backed match caching with a 60-second TTL.
+- WebSocket trip-status broadcast service.
+- Docker Compose environment for the app, PostgreSQL, Redis, and realtime service.
+- AWS SAM template and Lambda-compatible matching handler.
+- Optional OpenAI Responses API explanations layered over deterministic rankings.
+- Automated domain tests, type checking, build verification, and GitHub Actions CI.
+- Clerk authentication when Clerk credentials are configured.
 
-ZotPool is more than just a travel tool—it helps students save money, meet like-minded peers, and create memorable journeys.
+## Architecture
 
-## How we built it
-I built ZotPool using Next.js for a fast, modern, and scalable web application. Clerk was integrated for secure user authentication, ensuring a seamless login experience. The interactive interface was crafted using React for dynamic components and Tailwind CSS for clean and responsive styling. For the Travel Buddy feature, we integrated Google Maps Autocomplete to simplify location selection. To generate user matches, we leveraged the OpenAI API to simulate realistic outputs based on user preferences and personality traits. This blend of modern technologies and AI ensured that ZotPool is intelligent, efficient, and user-focused.
+```mermaid
+flowchart LR
+    UI[Next.js + React client] --> API[Matching API]
+    API --> DOMAIN[Geospatial scoring domain]
+    API --> CACHE[(Redis cache)]
+    API --> DB[(PostgreSQL)]
+    API -. optional .-> AI[OpenAI explanation]
+    DB --> INDEX[B-tree route/time indexes]
+    UI <--> WS[WebSocket status service]
+    LAMBDA[AWS Lambda handler] --> DOMAIN
+```
 
-## Challenges we ran into
-The major challenge I faced was building the model that powers the algorithm for matching users. This involved calculating distances between locations using latitude and longitude to ensure the output options were within a 1-mile radius. Converting this logic into mathematical formulas and integrating it with an LLM-powered matching system required significant effort. On top of that, incorporating the Google Maps API for location autocomplete and ensuring it worked seamlessly with our custom algorithm was technically demanding
+The matching domain is deliberately independent of the web framework. The Next.js API and Lambda handler both reuse the same scoring functions, while repository and cache interfaces allow in-memory demo adapters to be replaced by PostgreSQL and Redis without changing the algorithm.
 
-## Accomplishments that we're proud of
-I am proud of building a functional platform that combines real-world tools like Google Maps API with advanced algorithms to create meaningful matches for travelers. Successfully integrating an LLM-powered recommendation system with real-time location-based filtering was a significant achievement. Additionally, designing an intuitive and user-friendly interface while ensuring the app handles diverse user needs was no small feat.
+## Matching model
 
-## What we learned
-This was my first hackathon, and it taught me so much about building a project under a strict timeline. Learning to use APIs, like Google Maps, and creating a working AI model for matching travelers was a valuable experience. It gave me practical insight into integrating technical tools and frameworks while working efficiently as part of a competition. This experience has sharpened my skills and boosted my confidence to tackle more complex challenges in the future.
+Candidates must satisfy hard constraints for maximum detour radius, departure-time window, and seat capacity. Compatible rides are ranked with:
 
-## What's next for ZotPool - Save Costs, Make Friends, Travel Together!
-The next step for ZotPool is to create a fully functional mobile application with an intuitive and gamified user interface. The focus will be on enhancing the user experience to make it more personal, engaging, and accessible. Additionally, we aim to improve the accuracy of information by refining the AI model and integrating more data sources, ensuring a seamless and enjoyable experience for users. This mobile app will make ZotPool even more convenient for students and travelers worldwide.
+| Signal | Weight |
+| --- | ---: |
+| Pickup proximity | 35% |
+| Destination proximity | 35% |
+| Departure-time proximity | 20% |
+| Luggage compatibility | 10% |
+
+See [`src/domain/matching.ts`](src/domain/matching.ts) for the implementation and [`tests/matching.test.ts`](tests/matching.test.ts) for executable examples.
+
+## Run locally
+
+### Lightweight demo
+
+The app falls back to in-memory rides and cache storage when service URLs are absent.
+
+```bash
+cp .env.example .env.local
+npm install
+npm run dev
+```
+
+Leave `DATABASE_URL` and `REDIS_URL` commented out for demo mode. Add a Google Maps browser key to `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, then open `http://localhost:3000`. Setting `OPENAI_API_KEY` optionally enables a short AI-generated explanation of the deterministic ranking; matching works without it.
+
+### Full local stack
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+Services:
+
+- Web app and matching API: `http://localhost:3000`
+- API health/status: `http://localhost:3000/api/matches`
+- Realtime health: `http://localhost:8081/health`
+- PostgreSQL: `localhost:5432`
+- Redis: `localhost:6379`
+
+The PostgreSQL container automatically applies [`db/init/001_schema.sql`](db/init/001_schema.sql), including seed rides and B-tree indexes.
+
+## Verify
+
+```bash
+npm test
+npm run typecheck
+npm run build
+```
+
+GitHub Actions runs the same checks for every pull request.
+
+## Repository map
+
+```text
+app/api/matches/          HTTP matching API
+app/carpool/              ride request interface
+src/domain/               framework-independent matching logic
+src/server/repositories/  PostgreSQL and demo repositories
+src/server/cache/         Redis and in-memory caches
+server/realtime.ts        WebSocket trip-status service
+db/init/                  schema, seed data, and indexes
+infra/                    AWS Lambda handler and SAM template
+tests/                    matching-domain tests
+```
+
+## Roadmap
+
+- Persist user-created ride requests and mutual confirmations.
+- Deploy and benchmark the Lambda/PostgreSQL/Redis configuration.
+- Add authenticated trip rooms and durable WebSocket event history.
+- Expand the Travel Buddy workflow after the carpool MVP is stable.
+
+## Project background
+
+ZotPool began as a UCI hackathon project inspired by the cost and isolation of traveling alone. This repository now focuses on turning that prototype into a verifiable engineering portfolio project with clear boundaries between working code and planned production features.
+
+## License
+
+MIT

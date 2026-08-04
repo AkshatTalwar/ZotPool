@@ -17,8 +17,8 @@ export default function Home() {
                 fontFamily: 'Arial, sans-serif',
             }}
         >
-            {/* Top Right Buttons */}
-            <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
+            {process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && (
+              <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
                 <Link href="/login">
                     <button
                         style={{
@@ -34,7 +34,8 @@ export default function Home() {
                         Login
                     </button>
                 </Link>
-            </div>
+              </div>
+            )}
 
             {/* App Name and Tagline */}
             <h1
@@ -53,7 +54,7 @@ export default function Home() {
                     textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
                 }}
             >
-                Save Costs, Make Friends, Travel Together!
+                Real-time ride matching for the UCI community
             </p>
 
             {/* Get Started Button */}
