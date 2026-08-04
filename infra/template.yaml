@@ -1,0 +1,27 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: ZotPool matching API deployment template
+
+Resources:
+  MatchFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: infra/lambda/match-handler.handler
+      Runtime: nodejs20.x
+      MemorySize: 512
+      Timeout: 10
+      Events:
+        MatchApi:
+          Type: Api
+          Properties:
+            Path: /matches
+            Method: post
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        EntryPoints:
+          - infra/lambda/match-handler.ts
+        Format: esm
+        Minify: true
+        Target: es2020

@@ -3,110 +3,45 @@
 import Link from "next/link";
 
 export default function ChoosePage() {
-    return (
-        <div
-            style={{
-                backgroundColor: '#255799',
-                color: '#fecc07',
-                height: '100vh',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                textAlign: 'center',
-                fontFamily: 'Arial, sans-serif',
-            }}
-        >
-            <h2
-                style={{
-                    fontSize: '2.5rem',
-                    color: '#fecc07',
-                    marginBottom: '30px',
-                }}
-            >
-                Choose Your Option
-            </h2>
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: '30px',
-                }}
-            >
-                <Link href="/carpool">
-                    <div
-                        style={{
-                            backgroundColor: '#fecc07',
-                            color: '#255799',
-                            width: '250px',
-                            height: '250px',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            fontSize: '2rem',
-                            fontWeight: 'bold',
-                            borderRadius: '15px',
-                            cursor: 'pointer',
-                            transition: 'transform 0.3s, background-color 0.3s',
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#ffd700';
-                            e.currentTarget.style.transform = 'scale(1.1)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = '#fecc07';
-                            e.currentTarget.style.transform = 'scale(1)';
-                        }}
-                    >
-                        Carpool
-                    </div>
-                </Link>
-                <Link href="/travelbuddy">
-                    <div
-                        style={{
-                            backgroundColor: '#fecc07',
-                            color: '#255799',
-                            width: '250px',
-                            height: '250px',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            fontSize: '2rem',
-                            fontWeight: 'bold',
-                            borderRadius: '15px',
-                            cursor: 'pointer',
-                            transition: 'transform 0.3s, background-color 0.3s',
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#ffd700';
-                            e.currentTarget.style.transform = 'scale(1.1)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = '#fecc07';
-                            e.currentTarget.style.transform = 'scale(1)';
-                        }}
-                    >
-                        Travel Buddy
-                    </div>
-                </Link>
-            </div>
-            <Link href="/">
-                <button
-                    style={{
-                        marginTop: '40px',
-                        backgroundColor: 'transparent',
-                        color: '#fecc07',
-                        border: '1px solid #fecc07',
-                        borderRadius: '5px',
-                        padding: '10px 20px',
-                        fontSize: '1.2rem',
-                        cursor: 'pointer',
-                    }}
-                >
-                    Close
-                </button>
-            </Link>
-        </div>
-    );
+  return (
+    <div
+      style={{
+        backgroundColor: "#255799",
+        color: "#fecc07",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        textAlign: "center",
+        padding: "32px",
+      }}
+    >
+      <p style={{ textTransform: "uppercase", letterSpacing: "0.18em", marginBottom: "8px" }}>
+        UCI ride matching
+      </p>
+      <h1 style={{ fontSize: "3rem", marginBottom: "12px" }}>Find a compatible carpool</h1>
+      <p style={{ maxWidth: "680px", color: "#fff", lineHeight: 1.6, marginBottom: "30px" }}>
+        ZotPool ranks open rides using pickup and destination distance, departure time,
+        available seats, and luggage capacity.
+      </p>
+      <Link
+        href="/carpool"
+        style={{
+          backgroundColor: "#fecc07",
+          color: "#255799",
+          padding: "18px 32px",
+          fontSize: "1.2rem",
+          fontWeight: 700,
+          borderRadius: "12px",
+          textDecoration: "none",
+        }}
+      >
+        Start matching
+      </Link>
+      <p style={{ marginTop: "24px", color: "#dbeafe" }}>
+        Travel Buddy matching is planned for the next release.
+      </p>
+    </div>
+  );
 }
