@@ -17,25 +17,26 @@ export default function Home() {
                 fontFamily: 'Arial, sans-serif',
             }}
         >
-            {process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && (
-              <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
-                <Link href="/login">
-                    <button
-                        style={{
-                            backgroundColor: '#fecc07',
-                            color: '#255799',
-                            border: 'none',
-                            borderRadius: '5px',
-                            padding: '10px 15px',
-                            fontSize: '1rem',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        Login
-                    </button>
-                </Link>
-              </div>
-            )}
+            {process.env.NEXT_PUBLIC_ENABLE_AUTH === "true" &&
+              process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && (
+                <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
+                  <Link href="/login">
+                      <button
+                          style={{
+                              backgroundColor: '#fecc07',
+                              color: '#255799',
+                              border: 'none',
+                              borderRadius: '5px',
+                              padding: '10px 15px',
+                              fontSize: '1rem',
+                              cursor: 'pointer',
+                          }}
+                      >
+                          Login
+                      </button>
+                  </Link>
+                </div>
+              )}
 
             {/* App Name and Tagline */}
             <h1

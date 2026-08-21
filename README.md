@@ -2,7 +2,7 @@
 
 ZotPool is a full-stack ridesharing prototype for the UCI community. It ranks compatible carpools using route proximity, departure-time alignment, available seats, and luggage capacity, then exposes trip-status events through a small WebSocket service.
 
-> **Portfolio MVP:** the matching algorithm, API, PostgreSQL repository, Redis cache, WebSocket service, Docker environment, Lambda-compatible handler, optional OpenAI explanation adapter, tests, and CI are implemented. The public demo can use in-memory sample rides when infrastructure credentials are not configured. Production traffic, scale claims, and a live AWS deployment are not asserted by this repository yet.
+> **Portfolio MVP:** the matching algorithm, API, PostgreSQL repository, Redis cache, WebSocket service, Docker environment, containerized Lambda handler, optional OpenAI explanation adapter, tests, CI, and an OIDC-based deployment workflow are implemented. The public demo can use in-memory sample rides when infrastructure credentials are not configured. Production traffic, scale claims, and a currently live AWS endpoint are not asserted by this repository.
 
 ## What works
 
@@ -15,6 +15,7 @@ ZotPool is a full-stack ridesharing prototype for the UCI community. It ranks co
 - WebSocket trip-status broadcast service.
 - Docker Compose environment for the app, PostgreSQL, Redis, and realtime service.
 - AWS SAM template and Lambda-compatible matching handler.
+- Lambda container image and manual GitHub Actions deployment through AWS OIDC.
 - Optional OpenAI Responses API explanations layered over deterministic rankings.
 - Automated domain tests, type checking, build verification, and GitHub Actions CI.
 - Clerk authentication when Clerk credentials are configured.
@@ -62,6 +63,8 @@ npm run dev
 
 Leave `DATABASE_URL` and `REDIS_URL` commented out for demo mode. Add a Google Maps browser key to `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, then open `http://localhost:3000`. Setting `OPENAI_API_KEY` optionally enables a short AI-generated explanation of the deterministic ranking; matching works without it.
 
+The carpool form also includes a prepared UCI-to-LAX request, so the complete ranking flow remains demonstrable if a place-autocomplete integration is unavailable during a presentation.
+
 ### Full local stack
 
 ```bash
@@ -89,6 +92,12 @@ npm run build
 
 GitHub Actions runs the same checks for every pull request.
 
+## Lambda deployment path
+
+[`infra/lambda/Dockerfile`](infra/lambda/Dockerfile) bundles the same service layer used by the Next.js API into an AWS Lambda container image. [`infra/template.yaml`](infra/template.yaml) defines the image-backed Lambda and HTTP API, while [`.github/workflows/deploy-lambda.yml`](.github/workflows/deploy-lambda.yml) performs a manually approved deployment with GitHub OIDC credentials.
+
+The workflow intentionally requires an `aws` GitHub Environment and repository secrets. It demonstrates the reproducible deployment path without pretending that the public Vercel demo is backed by a live Lambda, RDS, or Redis environment.
+
 ## Repository map
 
 ```text
@@ -102,6 +111,8 @@ db/init/                  schema, seed data, and indexes
 infra/                    AWS Lambda handler and SAM template
 tests/                    matching-domain tests
 ```
+
+For a short technical walkthrough and a direct map from architecture claims to code, see [`docs/engineering-walkthrough.md`](docs/engineering-walkthrough.md).
 
 ## Roadmap
 

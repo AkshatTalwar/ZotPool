@@ -6,10 +6,11 @@
     "dev": "next dev --turbopack",
     "dev:realtime": "tsx server/realtime.ts",
     "build": "next build",
+    "build:lambda": "esbuild ./infra/lambda/match-handler.ts --bundle --platform=node --target=node20 --format=cjs --outfile=.lambda-dist/index.js",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "tsc tests/matching.test.ts src/domain/matching.ts src/domain/types.ts --outDir .test-dist --module commonjs --moduleResolution node --target es2020 --esModuleInterop --skipLibCheck && node --test .test-dist/tests/matching.test.js"
+    "test": "tsc tests/matching.test.ts tests/validation.test.ts src/domain/matching.ts src/domain/types.ts src/domain/validation.ts --outDir .test-dist --module commonjs --moduleResolution node --target es2020 --esModuleInterop --skipLibCheck && node --test .test-dist/tests/matching.test.js .test-dist/tests/validation.test.js"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.39.6",
@@ -33,6 +34,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/ws": "^8.5.13",
+    "esbuild": "^0.28.2",
     "eslint": "^9",
     "eslint-config-next": "^16.3.0",
     "postcss": "^8.5.25",

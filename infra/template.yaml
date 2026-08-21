@@ -1,27 +1,48 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: ZotPool matching API deployment template
+Description: ZotPool containerized matching API
+
+Parameters:
+  DatabaseUrl:
+    Type: String
+    Default: ""
+    NoEcho: true
+  RedisUrl:
+    Type: String
+    Default: ""
+    NoEcho: true
+  OpenAiApiKey:
+    Type: String
+    Default: ""
+    NoEcho: true
 
 Resources:
   MatchFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ../
-      Handler: infra/lambda/match-handler.handler
-      Runtime: nodejs20.x
+      PackageType: Image
+      Architectures:
+        - x86_64
       MemorySize: 512
       Timeout: 10
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          REDIS_URL: !Ref RedisUrl
+          OPENAI_API_KEY: !Ref OpenAiApiKey
+          OPENAI_MODEL: gpt-5
       Events:
         MatchApi:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /matches
-            Method: post
+            Method: POST
     Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        EntryPoints:
-          - infra/lambda/match-handler.ts
-        Format: esm
-        Minify: true
-        Target: es2020
+      DockerContext: ../
+      Dockerfile: infra/lambda/Dockerfile
+      DockerTag: nodejs20
+
+Outputs:
+  MatchApiUrl:
+    Description: HTTP endpoint for the matching service
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/matches"
