@@ -1,0 +1,35 @@
+name: Deploy Lambda
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: aws
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/setup-sam@v2
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'us-west-2' }}
+      - run: sam build --template-file infra/template.yaml
+      - name: Deploy container image and HTTP API
+        run: >-
+          sam deploy
+          --stack-name zotpool-matching
+          --region "${{ vars.AWS_REGION || 'us-west-2' }}"
+          --resolve-image-repos
+          --capabilities CAPABILITY_IAM
+          --no-confirm-changeset
+          --no-fail-on-empty-changeset
+          --parameter-overrides
+          DatabaseUrl="${{ secrets.ZOTPOOL_DATABASE_URL }}"
+          RedisUrl="${{ secrets.ZOTPOOL_REDIS_URL }}"
+          OpenAiApiKey="${{ secrets.OPENAI_API_KEY }}"

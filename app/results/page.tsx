@@ -36,6 +36,11 @@ export default function Results() {
         () => localStorage.getItem('matchExplanation') ?? '',
         () => '',
     );
+    const matchSource = useSyncExternalStore(
+        subscribeToLocalStorage,
+        () => localStorage.getItem('matchSource') ?? '',
+        () => '',
+    );
     const matches = parseMatches(serializedMatches);
 
     return (
@@ -56,6 +61,22 @@ export default function Results() {
             <p style={{ marginBottom: '24px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
                 Every score is computed from route distance, departure time, capacity, and luggage compatibility.
             </p>
+            {matchSource && (
+                <p
+                    style={{
+                        marginTop: '-12px',
+                        marginBottom: '24px',
+                        padding: '7px 12px',
+                        border: '1px solid rgba(255,255,255,0.35)',
+                        borderRadius: '999px',
+                        fontSize: '0.85rem',
+                        position: 'relative',
+                        zIndex: 2,
+                    }}
+                >
+                    Result source: {matchSource === 'cache' ? 'Redis or in-memory cache' : 'freshly computed'}
+                </p>
+            )}
             {aiExplanation && (
                 <aside
                     style={{

@@ -3,7 +3,9 @@ import type { NextFetchEvent, NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 const authConfigured = Boolean(
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY,
+  process.env.NEXT_PUBLIC_ENABLE_AUTH === "true" &&
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+    process.env.CLERK_SECRET_KEY,
 );
 const authenticatedMiddleware = authConfigured ? clerkMiddleware() : null;
 

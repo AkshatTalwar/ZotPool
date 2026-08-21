@@ -4,12 +4,43 @@ import React, { useState, useRef } from 'react';
 import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 import { useRouter } from 'next/navigation';
 
+import type { RideRequest } from '@/src/domain/types';
+
 type Coordinates = { lat: number; lng: number };
 
 type MatchingResponse = {
     matches: unknown[];
+    source?: 'cache' | 'computed';
     aiExplanation?: string | null;
 };
+
+const GOOGLE_MAPS_LIBRARIES: ('places')[] = ['places'];
+
+function createDemoRequest(): RideRequest {
+    return {
+        startLabel: 'UC Irvine',
+        endLabel: 'Los Angeles International Airport',
+        start: { lat: 33.6405, lng: -117.8443 },
+        end: { lat: 33.9416, lng: -118.4085 },
+        departureTime: new Date(Date.now() + 3_600_000).toISOString(),
+        preferences: {
+            maxDetourMiles: 5,
+            partySize: 1,
+            luggageCount: 1,
+        },
+    };
+}
+
+async function requestMatches(request: RideRequest): Promise<MatchingResponse> {
+    const response = await fetch('/api/matches', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(request),
+    });
+
+    if (!response.ok) throw new Error('Matching service rejected the request.');
+    return response.json() as Promise<MatchingResponse>;
+}
 
 function saveMatchingResult(result: MatchingResponse) {
     localStorage.setItem('matchedRides', JSON.stringify(result.matches));
@@ -18,6 +49,7 @@ function saveMatchingResult(result: MatchingResponse) {
     } else {
         localStorage.removeItem('matchExplanation');
     }
+    localStorage.setItem('matchSource', result.source ?? 'computed');
 }
 
 export default function CarpoolForm() {
@@ -36,25 +68,7 @@ function DemoCarpoolForm() {
         setError('');
         setIsSubmitting(true);
         try {
-            const response = await fetch('/api/matches', {
-                method: 'POST',
-                headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({
-                    startLabel: 'UC Irvine',
-                    endLabel: 'Los Angeles International Airport',
-                    start: { lat: 33.6405, lng: -117.8443 },
-                    end: { lat: 33.9416, lng: -118.4085 },
-                    departureTime: new Date(Date.now() + 3_600_000).toISOString(),
-                    preferences: {
-                        maxDetourMiles: 5,
-                        partySize: 1,
-                        luggageCount: 1,
-                    },
-                }),
-            });
-
-            if (!response.ok) throw new Error('Matching service rejected the demo request.');
-            saveMatchingResult(await response.json() as MatchingResponse);
+            saveMatchingResult(await requestMatches(createDemoRequest()));
             router.push('/results');
         } catch (submissionError) {
             setError(submissionError instanceof Error ? submissionError.message : 'Unable to run the demo.');
@@ -110,7 +124,7 @@ function DemoCarpoolForm() {
                         cursor: 'pointer',
                     }}
                 >
-                    {isSubmitting ? 'Finding matches...' : 'Run demo match'}
+                    {isSubmitting ? 'Finding matches...' : 'Run 30-second prepared demo'}
                 </button>
             </section>
         </div>
@@ -140,10 +154,23 @@ function GoogleMapsCarpoolForm({ googleMapsApiKey }: { googleMapsApiKey: string 
 
     const { isLoaded } = useJsApiLoader({
         googleMapsApiKey,
-        libraries: ['places'],
+        libraries: GOOGLE_MAPS_LIBRARIES,
     });
 
     const router = useRouter();
+
+    const runPreparedDemo = async () => {
+        setError('');
+        setIsSubmitting(true);
+        try {
+            saveMatchingResult(await requestMatches(createDemoRequest()));
+            router.push('/results');
+        } catch (submissionError) {
+            setError(submissionError instanceof Error ? submissionError.message : 'Unable to run the demo.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const handlePlaceSelect = (field: 'start' | 'end') => {
         const autocomplete = field === 'start' ? autocompleteStartRef.current : autocompleteEndRef.current;
@@ -180,25 +207,18 @@ function GoogleMapsCarpoolForm({ googleMapsApiKey }: { googleMapsApiKey: string 
             const luggageCount = Number(formData.handbag || 0)
                 + Number(formData.cabinBag || 0)
                 + Number(formData.checkInBag || 0);
-            const response = await fetch('/api/matches', {
-                method: 'POST',
-                headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({
-                    startLabel: formData.start,
-                    endLabel: formData.end,
-                    start: coordinates.start,
-                    end: coordinates.end,
-                    departureTime: new Date(`${formData.date}T${formData.time}`).toISOString(),
-                    preferences: {
-                        maxDetourMiles: 5,
-                        partySize: Number(formData.people),
-                        luggageCount,
-                    },
-                }),
+            const result = await requestMatches({
+                startLabel: formData.start,
+                endLabel: formData.end,
+                start: coordinates.start,
+                end: coordinates.end,
+                departureTime: new Date(`${formData.date}T${formData.time}`).toISOString(),
+                preferences: {
+                    maxDetourMiles: 5,
+                    partySize: Number(formData.people),
+                    luggageCount,
+                },
             });
-
-            if (!response.ok) throw new Error('Matching service rejected the request.');
-            const result = await response.json() as MatchingResponse;
             saveMatchingResult(result);
             router.push('/results');
         } catch (submissionError) {
@@ -208,7 +228,7 @@ function GoogleMapsCarpoolForm({ googleMapsApiKey }: { googleMapsApiKey: string 
         }
     };
     
-    if (!isLoaded) return <div>Loading Google Maps...</div>;
+    if (!isLoaded) return <DemoCarpoolForm />;
 
     return (
         <div
@@ -447,6 +467,24 @@ function GoogleMapsCarpoolForm({ googleMapsApiKey }: { googleMapsApiKey: string 
                     }}
                 >
                     {isSubmitting ? 'Finding compatible rides…' : 'Find matches'}
+                </button>
+                <button
+                    type="button"
+                    onClick={runPreparedDemo}
+                    disabled={isSubmitting}
+                    style={{
+                        width: '100%',
+                        padding: '12px',
+                        marginTop: '10px',
+                        borderRadius: '5px',
+                        border: '1px solid #255799',
+                        backgroundColor: '#ffffff',
+                        color: '#255799',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                    }}
+                >
+                    Run 30-second prepared demo
                 </button>
             </form>
         </div>

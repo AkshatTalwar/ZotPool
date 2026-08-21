@@ -1,13 +1,9 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
 
 import "./globals.css";
-
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "ZotPool",
@@ -36,6 +32,11 @@ function generateDots(count: number) {
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const authEnabled = Boolean(
+    process.env.NEXT_PUBLIC_ENABLE_AUTH === "true" &&
+      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+      process.env.CLERK_SECRET_KEY,
+  );
   const app = (
     <>
       <div className="floating-dots">{generateDots(50)}</div>
@@ -52,8 +53,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <Image
             src="/anteater_logo.png"
             alt="ZotPool anteater logo"
-            width={80}
-            height={80}
+            width={96}
+            height={52}
           />
         </Link>
       </header>
@@ -64,10 +65,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className="antialiased"
         style={{ margin: 0, padding: 0 }}
       >
-        {process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? (
+        {authEnabled ? (
           <ClerkProvider>{app}</ClerkProvider>
         ) : (
           app
